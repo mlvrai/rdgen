@@ -113,7 +113,7 @@ jobs:
           data: '{"uuid": "${{ env.uuid }}"}'
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@373c709c69115d41ff229c7e5df9f8788daa9553 # v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -165,7 +165,7 @@ jobs:
             --ed25519-public-key "${{ env.update_public_key }}"
 
       - name: Restore bridge files
-        uses: actions/download-artifact@2a5974104b6d5dbdb2f9468a3e54da3bdd241578 # master
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # master
         with:
           name: bridge-artifact
           path: ./
@@ -558,7 +558,7 @@ jobs:
           fi
 
       - name: Download RustDeskTempTopMostWindow artifacts
-        uses: actions/download-artifact@2a5974104b6d5dbdb2f9468a3e54da3bdd241578 # master
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # master
         if: env.UPLOAD_ARTIFACT == 'true'
         with:
           name: topmostwindow-artifacts
@@ -706,6 +706,6 @@ jobs:
     if: always()
     steps:
       - name: Delete secrets artifact
-        uses: geekyeggo/delete-artifact@142daa0f3a918e74a4c700b1ffb48887be395588 # v6
+        uses: geekyeggo/delete-artifact@176a747ab7e287e3ff4787bf8a148716375ca118 # v6
         with:
           name: encrypted-secrets-zip
