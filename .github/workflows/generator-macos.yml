@@ -85,9 +85,9 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: encrypted-secrets-zip
 
@@ -99,7 +99,7 @@ jobs:
       - name: Finalize and Cleanup zip/json
         if: always() # Run even if previous steps fail
         continue-on-error: true
-        uses: fjogeleit/http-request-action@v2
+        uses: fjogeleit/http-request-action@f98bb26551cd1af7d3eb2674578a80754ece88db # v2
         with:
           url: "${{ secrets.GENURL }}/cleanzip"
           method: 'POST'
@@ -107,7 +107,7 @@ jobs:
           data: '{"uuid": "${{ env.uuid }}"}'
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v9
+        uses: actions/github-script@373c709c69115d41ff229c7e5df9f8788daa9553 # v9
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -115,7 +115,7 @@ jobs:
 
       - name: Checkout source code
         if: ${{ env.VERSION != 'master' }}
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
             repository: rustdesk/rustdesk
             ref: refs/tags/${{ env.VERSION }}
@@ -123,7 +123,7 @@ jobs:
   
       - name: Checkout source code
         if: ${{ env.VERSION == 'master' }}
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
             repository: rustdesk/rustdesk
             submodules: recursive
@@ -142,7 +142,7 @@ jobs:
         if: ${{ env.update_public_key != '' }}
         shell: bash
         run: |
-          curl -sSL -o allow_custom_update.py https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/allow_custom_update.py
+          curl -sSL -o allow_custom_update.py https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/.github/patches/allow_custom_update.py
           python3 allow_custom_update.py \
             --rustdesk-root . \
             --update-url "${{ env.downloadLink}}/api/version/latest" \
@@ -280,25 +280,25 @@ jobs:
           grep -nE "RENDEZVOUS_PORT|RELAY_PORT|WS_" ./libs/hbb_common/src/config.rs
 
       - name: allow custom.txt
-        uses: nick-fields/retry@v4
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4
         with:
           timeout_minutes: 5
           max_attempts: 3
           retry_wait_seconds: 15
           shell: bash
           command: |
-            wget https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/allowCustom.py
+            wget https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/.github/patches/allowCustom.py
             python allowCustom.py
-            wget https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/forcePresetPassword.py
+            wget https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/.github/patches/forcePresetPassword.py
             python forcePresetPassword.py
-            wget https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/removeSetupServerTip.diff
+            wget https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/.github/patches/removeSetupServerTip.diff
             git apply removeSetupServerTip.diff
             # sed -i '/intl:/a \ \ archive: ^3.6.1' ./flutter/pubspec.yaml
 
       - name: apply theme colors
         shell: bash
         run: |
-          wget https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/themeColors.py
+          wget https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/.github/patches/themeColors.py
           python themeColors.py
           
       - name: Install build runtime
@@ -323,7 +323,7 @@ jobs:
           nasm --version
 
       - name: Install flutter
-        uses: subosito/flutter-action@v2
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
           channel: "stable"
           flutter-version: ${{ env.FLUTTER_VERSION }}
@@ -343,13 +343,13 @@ jobs:
           grep -n '_setFramesEnabledState(false);' ../packages/flutter/lib/src/scheduler/binding.dart
         
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@v1
+        uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # v1
         with:
             toolchain: ${{ env.MAC_RUST_VERSION }}
             targets: ${{ matrix.job.target }}
             components: "rustfmt"
   
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@e9d7b9f1e587218970671bac74e5511ed9506e6a # v2
         with:
           prefix-key: ${{ matrix.job.os }}
 
@@ -505,14 +505,14 @@ jobs:
       - name: use X for offline display instead of orange circle
         if: env.xOffline == 'true'
         run: |
-          wget https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/xoffline.py
+          wget https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/.github/patches/xoffline.py
           python xoffline.py
 
       - name: hide-cm
         continue-on-error: true
         if: env.hidecm == 'true'
         run: |
-          wget https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/hidecm.diff
+          wget https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/.github/patches/hidecm.diff
           git apply hidecm.diff
 
       - name: removeNewVersionNotif
@@ -523,13 +523,13 @@ jobs:
           #sed -i '/let (request, url) =/,/Ok(())/{/Ok(())/!d}' ./src/common.rs
 
       - name: Restore bridge files
-        uses: actions/download-artifact@master
+        uses: actions/download-artifact@2a5974104b6d5dbdb2f9468a3e54da3bdd241578 # master
         with:
           name: bridge-artifact
           path: ./
 
       - name: Restore vcpkg installed cache
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ${{ github.workspace }}/installed
           key: vcpkg-macos-${{ env.VCPKG_COMMIT_ID }}-${{ matrix.job.vcpkg-triplet }}
@@ -537,7 +537,7 @@ jobs:
             vcpkg-macos-${{ env.VCPKG_COMMIT_ID }}-
 
       - name: Setup vcpkg
-        uses: lukka/run-vcpkg@v11
+        uses: lukka/run-vcpkg@b1a0dd252f06b9e25b3c022a9a03bd7a427fb6a2 # v11
         with:
           vcpkgGitCommitId: ${{ env.VCPKG_COMMIT_ID }}
           doNotCache: false
@@ -559,7 +559,7 @@ jobs:
           head -n 100 "${VCPKG_ROOT}/buildtrees/ffmpeg/build-${{ matrix.job.vcpkg-triplet }}-rel-out.log" || true
 
       - name: Save vcpkg installed cache
-        uses: actions/cache/save@v6
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         continue-on-error: true
         with:
           path: ${{ github.workspace }}/installed
@@ -817,6 +817,6 @@ jobs:
     if: always()
     steps:
       - name: Delete secrets artifact
-        uses: geekyeggo/delete-artifact@v6
+        uses: geekyeggo/delete-artifact@142daa0f3a918e74a4c700b1ffb48887be395588 # v6
         with:
           name: encrypted-secrets-zip

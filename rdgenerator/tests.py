@@ -134,3 +134,42 @@ class GeneratorViewTests(TestCase):
             secrets = json.loads(zf.read('secrets.json'))
         custom = json.loads(base64.b64decode(secrets['custom']))
         self.assertEqual(custom['override-settings']['hide-powered-by-me'], 'Y')
+
+
+class RunnerEndpointHardeningTests(TestCase):
+    """save_custom_client and updategh are reachable without auth; they must
+    only act on runs this server started."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.cwd = os.getcwd()
+        os.chdir(self.tmp.name)
+
+    def tearDown(self):
+        os.chdir(self.cwd)
+        self.tmp.cleanup()
+
+    def _upload(self, run_uuid):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        return self.client.post('/save_custom_client', {
+            'uuid': run_uuid,
+            'file': SimpleUploadedFile('client.exe', b'MZ'),
+        })
+
+    def test_upload_for_unknown_run_is_rejected(self):
+        resp = self._upload('11111111-2222-3333-4444-555555555555')
+        self.assertEqual(resp.status_code, 403)
+        self.assertFalse(os.path.exists('exe'))
+
+    def test_upload_for_known_run_is_saved(self):
+        from .models import GithubRun
+        run_uuid = '11111111-2222-3333-4444-555555555555'
+        GithubRun.objects.create(uuid=run_uuid, status='in_progress')
+        resp = self._upload(run_uuid)
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(os.path.isfile(os.path.join('exe', run_uuid, 'client.exe')))
+
+    def test_status_update_rejects_bad_uuid(self):
+        resp = self.client.post('/updategh', data=json.dumps({'uuid': '../x', 'status': 'ok'}),
+                                content_type='application/json')
+        self.assertEqual(resp.status_code, 403)

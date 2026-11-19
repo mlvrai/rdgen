@@ -90,9 +90,9 @@ jobs:
           # - { target: aarch64-pc-windows-msvc, os: windows-2022, arch: aarch64 }
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: encrypted-secrets-zip
 
@@ -104,7 +104,7 @@ jobs:
       - name: Finalize and Cleanup zip/json
         if: always() # Run even if previous steps fail
         continue-on-error: true
-        uses: fjogeleit/http-request-action@v2
+        uses: fjogeleit/http-request-action@f98bb26551cd1af7d3eb2674578a80754ece88db # v2
         with:
           url: "${{ secrets.GENURL }}/cleanzip"
           method: 'POST'
@@ -112,7 +112,7 @@ jobs:
           data: '{"uuid": "${{ env.uuid }}"}'
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v9
+        uses: actions/github-script@373c709c69115d41ff229c7e5df9f8788daa9553 # v9
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -130,7 +130,7 @@ jobs:
 
       - name: Checkout source code
         if: ${{ env.VERSION != 'master' }}
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: rustdesk/rustdesk
           ref: refs/tags/${{ env.VERSION }}
@@ -138,7 +138,7 @@ jobs:
 
       - name: Checkout source code
         if: ${{ env.VERSION == 'master' }}
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: rustdesk/rustdesk
           submodules: recursive
@@ -157,25 +157,25 @@ jobs:
         if: ${{ env.update_public_key != '' }}
         shell: bash
         run: |
-          curl -sSL -o allow_custom_update.py https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/allow_custom_update.py
+          curl -sSL -o allow_custom_update.py https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/.github/patches/allow_custom_update.py
           python3 allow_custom_update.py \
             --rustdesk-root . \
             --update-url "${{ env.downloadLink}}/api/version/latest" \
             --ed25519-public-key "${{ env.update_public_key }}"
 
       - name: Restore bridge files
-        uses: actions/download-artifact@master
+        uses: actions/download-artifact@2a5974104b6d5dbdb2f9468a3e54da3bdd241578 # master
         with:
           name: bridge-artifact
           path: ./
 
       - name: Set up Python
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           python-version: '3.12'
 
       - name: Setup NuGet
-        uses: NuGet/setup-nuget@v4
+        uses: NuGet/setup-nuget@fd55a6f3b34392fa83fde1454582407d8c714123 # v4
         with:
           nuget-version: 'latest'
       
@@ -327,24 +327,24 @@ jobs:
           #sed -i '/intl:/a \ \ archive: ^3.6.1' ./flutter/pubspec.yaml
 
       - name: allow custom.txt
-        uses: nick-fields/retry@v4
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4
         with:
           timeout_minutes: 1
           max_attempts: 3
           shell: pwsh
           command: |
-            Invoke-WebRequest -Uri https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/allowCustom.py -OutFile allowCustom.py
+            Invoke-WebRequest -Uri https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/.github/patches/allowCustom.py -OutFile allowCustom.py
             python allowCustom.py
-            Invoke-WebRequest -Uri https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/forcePresetPassword.py -OutFile forcePresetPassword.py
+            Invoke-WebRequest -Uri https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/.github/patches/forcePresetPassword.py -OutFile forcePresetPassword.py
             python forcePresetPassword.py
             # Remove Setup Server Tip
-            Invoke-WebRequest -Uri https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/removeSetupServerTip.diff -OutFile removeSetupServerTip.diff
+            Invoke-WebRequest -Uri https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/.github/patches/removeSetupServerTip.diff -OutFile removeSetupServerTip.diff
             git apply removeSetupServerTip.diff  
 
       - name: apply theme colors
         shell: pwsh
         run: |
-          Invoke-WebRequest -Uri https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/themeColors.py -OutFile themeColors.py
+          Invoke-WebRequest -Uri https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/.github/patches/themeColors.py -OutFile themeColors.py
           python themeColors.py
 
       - name: Patch remote printer port to spool file
@@ -398,7 +398,7 @@ jobs:
           
       - name: magick stuff
         if: ${{ env.iconlink_url != 'false' }}
-        uses: nick-fields/retry@v4
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4
         with:
           timeout_minutes: 1
           max_attempts: 3
@@ -438,13 +438,13 @@ jobs:
 
       - name: use X for offline display instead of orange circle
         if: env.xOffline == 'true'
-        uses: nick-fields/retry@v4
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4
         with:
           timeout_minutes: 1
           max_attempts: 3
           shell: pwsh
           command: |
-            Invoke-WebRequest -Uri https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/xoffline.py -OutFile xoffline.py
+            Invoke-WebRequest -Uri https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/.github/patches/xoffline.py -OutFile xoffline.py
             python xoffline.py
 
       - name: removeNewVersionNotif
@@ -466,10 +466,10 @@ jobs:
           cd ..
 
       - name: Checkout printer-adapter crate
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          repository: bryangerlach/rdgen
-          ref: master
+          repository: ${{ github.repository }}
+          ref: ${{ github.sha }}
           path: ./temp-repo
 
       - name: Move printer-adapter into place
@@ -531,7 +531,7 @@ jobs:
 
       - name: logo stuff
         if: ${{ env.logolink_url != 'false' }}
-        uses: nick-fields/retry@v4
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4
         with:
           timeout_minutes: 1
           max_attempts: 3
@@ -557,7 +557,7 @@ jobs:
           fi
 
       - name: Download RustDeskTempTopMostWindow artifacts
-        uses: actions/download-artifact@master
+        uses: actions/download-artifact@2a5974104b6d5dbdb2f9468a3e54da3bdd241578 # master
         if: env.UPLOAD_ARTIFACT == 'true'
         with:
           name: topmostwindow-artifacts
@@ -610,7 +610,7 @@ jobs:
           mv ./target/release/rustdesk-portable-packer.exe "./SignOutput/rustdesk.exe"
 
       - name: Add MSBuild to PATH
-        uses: microsoft/setup-msbuild@v3
+        uses: microsoft/setup-msbuild@30375c66a4eea26614e0d39710365f22f8b0af57 # v3
 
       - name: Build msi
         continue-on-error: true
@@ -678,7 +678,7 @@ jobs:
 
       - name: send file to rdgen server
         if: ${{ env.rdgen == 'true' }}
-        uses: nick-fields/retry@v4
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4
         with:
           timeout_minutes: 1
           max_attempts: 3
@@ -689,7 +689,7 @@ jobs:
 
       - name: send file to api server
         if: ${{ env.rdgen == 'false' }}
-        uses: nick-fields/retry@v4
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4
         with:
           timeout_minutes: 1
           max_attempts: 3
@@ -705,6 +705,6 @@ jobs:
     if: always()
     steps:
       - name: Delete secrets artifact
-        uses: geekyeggo/delete-artifact@v6
+        uses: geekyeggo/delete-artifact@142daa0f3a918e74a4c700b1ffb48887be395588 # v6
         with:
           name: encrypted-secrets-zip

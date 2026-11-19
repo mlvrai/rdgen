@@ -633,7 +633,9 @@ def update_github_run(request):
     data = json.loads(request.body)
     myuuid = data.get('uuid')
     mystatus = data.get('status')
-    GithubRun.objects.filter(Q(uuid=myuuid)).update(status=mystatus)
+    if not isinstance(myuuid, str) or not _UUID_RE.match(myuuid) or not isinstance(mystatus, str):
+        return HttpResponseForbidden("Invalid request")
+    GithubRun.objects.filter(Q(uuid=myuuid)).update(status=mystatus[:100])
     return HttpResponse('')
 
 def resize_and_encode_icon(imagefile):
@@ -737,6 +739,11 @@ def save_custom_client(request):
     myuuid = request.POST.get('uuid')
     if not _safe_parts(myuuid, file.name):
         return HttpResponseForbidden("Invalid filename")
+    # Only accept uploads for a run this server started itself; this endpoint
+    # is reachable without auth (GitHub runners call it), so a random caller
+    # must not be able to drop files into exe/.
+    if not GithubRun.objects.filter(uuid=myuuid).exists():
+        return HttpResponseForbidden("Unknown run")
     file_save_path = "exe/%s/%s" % (myuuid, file.name)
     Path("exe/%s" % myuuid).mkdir(parents=True, exist_ok=True)
     with open(file_save_path, "wb+") as f:
